@@ -1,0 +1,20 @@
+{
+    "name": "jes5199/MeticulousInquiry",
+    "description": "Query-Building Building Blocks",
+    "type": "library",
+    "version": "0.0.1",
+    "autoload": {
+        "psr-4": { "MeticulousInquiry\\": "src/" }
+    },
+    "require": {
+        "jes5199/PedanticQuerent": "0.0.3"
+    },
+
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jes5199/PedanticQuerent"
+        }
+    ]
+}
+
