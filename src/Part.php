@@ -1,5 +1,5 @@
 <?php
-namespace MeticulousInquiry\QueryBuilder;
+namespace MeticulousInquisitor;
 
 abstract class Part {
     abstract function __toString();
@@ -25,6 +25,10 @@ abstract class Part {
                 $this->subparts()
             )
         );
+    }
+
+    function stringify($s) {
+        return "$s";
     }
 
     function parenthesize($s) {

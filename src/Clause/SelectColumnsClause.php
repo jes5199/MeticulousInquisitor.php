@@ -1,9 +1,8 @@
 <?php
-namespace MeticulousInquiry\QueryBuilder\Clause;
+namespace MeticulousInquisitor\Clause;
 
-use \MeticulousInquiry\QueryBuilder\Part;
-use \MeticulousInquiry\QueryBuilder\Clause;
-use \MeticulousInquiry\QueryBuilder\Clause\SelectColumnsClause\SelectColumn;
+use \MeticulousInquisitor\Clause;
+use \MeticulousInquisitor\Clause\SelectColumnsClause\SelectColumn;
 
 class SelectColumnsClause extends Clause {
     protected $columns;
@@ -12,7 +11,7 @@ class SelectColumnsClause extends Clause {
         $this->columns = [];
 
         foreach (func_get_args() as $column) {
-            $this->addColumn($column);
+            $this->addSelectColumn($column);
         }
     }
 

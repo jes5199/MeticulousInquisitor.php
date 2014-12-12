@@ -1,7 +1,7 @@
 <?php
-namespace MeticulousInquiry\Expression;
+namespace MeticulousInquisitor\Expression;
 
-use \MeticulousInquiry\Expression;
+use \MeticulousInquisitor\Expression;
 
 class RawExpression extends Expression {
     protected $expressionSQL;

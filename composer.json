@@ -1,19 +1,19 @@
 {
-    "name": "jes5199/MeticulousInquiry",
-    "description": "Query-Building Building Blocks",
+    "name": "jes5199/MeticulousInquisitor.php",
+    "description": "an Object-Oriented Query Builder",
     "type": "library",
     "version": "0.0.1",
     "autoload": {
-        "psr-4": { "MeticulousInquiry\\": "src/" }
+        "psr-4": { "MeticulousInquisitor\\": "src/" }
     },
     "require": {
-        "jes5199/PedanticQuerent": "0.0.3"
+        "jes5199/PedanticQuerent.php": "0.0.4"
     },
 
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/jes5199/PedanticQuerent"
+            "url": "https://github.com/jes5199/PedanticQuerent.php"
         }
     ]
 }

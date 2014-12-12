@@ -1,8 +1,8 @@
 <?php
-namespace MeticulousInquiry\QueryBuilder\Clause\SelectColumnsClause;
+namespace MeticulousInquisitor\Clause\SelectColumnsClause;
 
-use \MeticulousInquiry\QueryBuilder\Part;
-use \MeticulousInquiry\Expression;
+use \MeticulousInquisitor\Part;
+use \MeticulousInquisitor\Expression;
 
 class SelectColumn extends Part {
     protected $expression;
@@ -17,15 +17,19 @@ class SelectColumn extends Part {
         return $this->expression;
     }
 
-    function asName() {
-        return $this->asName;
+    function asName($name = null) {
+        if ($name === null) {
+            return $this->asName;
+        } else {
+            $this->asName = $name;
+        }
     }
 
     function __toString() {
         if ($this->asName()) {
-            return $this->expression() . " as " . $this->backtick($this->asName());
+            return $this->expression() . " AS " . $this->backtick($this->asName());
         } else {
-            return "${$this->expression()}";
+            return $this->stringify($this->expression());
         }
     }
 

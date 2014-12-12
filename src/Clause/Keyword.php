@@ -1,7 +1,7 @@
 <?php
-namespace MeticulousInquiry\QueryBuilder;
+namespace MeticulousInquisitor\Clause;
 
-use \MeticulousInquiry\QueryBuilder\Clause;
+use \MeticulousInquisitor\Clause;
 
 class Keyword extends Clause {
     protected $keyword;

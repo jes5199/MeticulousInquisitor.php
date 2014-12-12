@@ -1,15 +1,22 @@
 <?php
-namespace MeticulousInquiry;
+namespace MeticulousInquisitor\Clause;
 
-use \PedanticQuerent\Query;
-use \MeticulousInquiry\QueryBuilder\BuiltQuery;
-use \MeticulousInquiry\QueryBuilder\Clause;
+use \MeticulousInquisitor\Clause;
+use \MeticulousInquisitor\Part;
 
-class QueryBuilder extends BuiltQuery implements Query {
+class ClauseBag extends Part {
     protected $clauses;
 
     function addClause(Clause $clause) {
         $this->clauses[$clause->name()] = $clause;
+        return $this;
+    }
+
+    function maybeAddClause(Clause $clause = null) {
+        if ($clause) {
+            $this->addClause($clause);
+        }
+        return $this;
     }
 
     function clauses() {
@@ -18,10 +25,6 @@ class QueryBuilder extends BuiltQuery implements Query {
 
     function __toString() {
         return join(" ", $this->clauses());
-    }
-
-    function getSQL() {
-        return $this->__toString();
     }
 
     protected function subparts() {

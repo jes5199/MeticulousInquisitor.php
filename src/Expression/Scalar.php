@@ -1,7 +1,7 @@
 <?php
-namespace MeticulousInquiry\Expression;
+namespace MeticulousInquisitor\Expression;
 
-use \MeticulousInquiry\Expression;
+use \MeticulousInquisitor\Expression;
 
 abstract class Scalar extends Expression {
     function precedence() {

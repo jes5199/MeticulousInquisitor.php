@@ -1,8 +1,8 @@
 <?php
-namespace MeticulousInquiry\QueryBuilder\Clause\SelectColumnsClause;
+namespace MeticulousInquisitor\QueryBuilder\Clause\SelectColumnsClause;
 
-namespace MeticulousInquiry\QueryBuilder\Clause\SelectColumn;
-use \MeticulousInquiry\Expression;
+namespace MeticulousInquisitor\QueryBuilder\Clause\SelectColumn;
+use \MeticulousInquisitor\Expression;
 
 class SelectStar extends SelectColumn {
     protected $tableName;

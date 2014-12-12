@@ -1,12 +1,13 @@
 <?php
-namespace MeticulousInquiry\Expression;
+namespace MeticulousInquisitor\Expression;
 
-use \MeticulousInquiry\Expression\Scalar;
+use \MeticulousInquisitor\Expression\Scalar;
+use \MeticulousInquisitor\Clause\LimitClause\LimitParam;
 
 /*
  * Do *not* use this class to wrap data that comes from an untrusted source
  */
-class Literal extends Scalar {
+class Literal extends Scalar implements LimitParam {
     protected $value;
 
     function __construct($value) {
@@ -22,9 +23,13 @@ class Literal extends Scalar {
         return "'$safeValue'";
     }
 
+    function isNumeric() {
+        return(is_numeric($this->value));
+    }
+
     function __toString() {
-        if (is_numeric($this->value)) {
-            return "" . $this->value;
+        if ($this->isNumeric()) {
+            return $this->stringify($this->value);
         } else {
             return $this->quote($this->value);
         }

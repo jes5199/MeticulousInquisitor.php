@@ -1,47 +1,177 @@
 <?php
-namespace MeticulousInquiry;
+namespace MeticulousInquisitor;
 
 use \PedanticQuerent\Query\SelectQuery;
 use \PedanticQuerent\QueryDelegate;
-use \MeticulousInquiry\QueryBuilder\BuiltQuery;
-use \MeticulousInquiry\QueryBuilder\Keyword;
-use \MeticulousInquiry\QueryBuilder\Clause\SelectColumnsClause;
-use \MeticulousInquiry\QueryBuilder\Clause\SelectColumnsClause\SelectColumn;
+use \MeticulousInquisitor\Clause\SelectColumnsClause\SelectColumn;
+use \MeticulousInquisitor\Clause\SelectFromClause;
+use \MeticulousInquisitor\Clause\WhereClause;
+use \MeticulousInquisitor\Clause\GroupByClause;
+use \MeticulousInquisitor\Clause\HavingClause;
+use \MeticulousInquisitor\Clause\OrderByClause;
+use \MeticulousInquisitor\Clause\OrderByClause\OrderDesc;
+use \MeticulousInquisitor\Clause\LimitClause;
+use \MeticulousInquisitor\Expression\AndExpression;
+use \MeticulousInquisitor\Expression\Column;
+use \MeticulousInquisitor\Expression\RawExpression;
+use \MeticulousInquisitor\Expression\Literal;
+use \MeticulousInquisitor\Expression\SubqueryExpression;
+use \MeticulousInquisitor\QueryStructure\SelectStructure;
+use \MeticulousInquisitor\Tableish;
 
-class SelectBuilder extends BuiltQuery implements SelectQuery {
+class SelectBuilder implements SelectQuery {
     use QueryDelegate;
 
-    protected $selectColumnsClause;
+    protected $selectColumns;
+    protected $selectFromTableish;
+    protected $whereExpressions;
+    protected $groupByExpressions;
+    protected $havingExpressions;
+    protected $orderByExpressions;
+    protected $limitCount;
+    protected $limitOffset;
 
     function __construct() {
-        $this->selectColumnsClause = new SelectColumnsClause;
+        $this->selectColumns = [];
+        $this->selectFromTableish = null;
+        $this->whereExpressions = [];
+        $this->groupByExpressions = [];
+        $this->havingExpressions = [];
+        $this->orderByExpressions = [];
+        $this->limitCount = null;
+        $this->limitOffset = null;
     }
 
-    protected function selectColumnsClause() {
-        return $this->selectColumnsClause;
+    function select($x, $y = null) {
+        if ($x instanceof Expression) {
+            return $this->selectExpression($x);
+        } elseif ($x instanceof SelectQuery) {
+            return $this->selectSubquery($x);
+        } elseif ($x == '*') { // select('*') => SELECT *
+            return $this->selectStar();
+        } elseif ($y == '*') { // select("a", "*") => SELECT `a`.*
+            return $this->selectStar($x);
+        } else { // select("table", "col") => SELECT `table`.`col`
+            return $this->selectColumnName($x, $y);
+        }
     }
 
-    function getQuery() {
-        $queryBuilder = new QueryBuilder;
-        $queryBuilder->addClause(new Keyword("SELECT"));
-        /* [ALL | DISTINCT | DISTINCTROW ] */
-        /* [HIGH_PRIORITY] */
-        /* [MAX_STATEMENT_TIME = N] */
-        /* [STRAIGHT_JOIN] */
-        /* [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT] */
-        /* [SQL_CACHE | SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS] */
-        $queryBuilder->addClause($this->selectColumnsClause());
-        //$queryBuilder->addClause($this->selectFromClause());
-
-        return $queryBuilder;
-    }
-
-    function selectColumn(SelectColumn $selectColumn) {
-        $this->selectColumnsClause()->addColumn($selectColumn);
+    function asName($name) {
+        $this->selectColumns[count($this->selectColumns) - 1]->asName($name);
         return $this;
     }
 
-    function subparts() {
-        return [$this->selectColumnsClause()];
+    function from($table, $alias = null) {
+        if ($table instanceof Tableish) {
+            $this->selectFromTableish = $table;
+        } elseif ($table instanceof SelectQuery) {
+            $this->selectFromTableish = new SubqueryAsTable($table, $alias);
+        } else {
+            $this->selectFromTableish = new Table($table, $alias);
+        }
+        return $this;
+    }
+
+    protected function makeExpression($expression, $bindings = []) {
+        if(!($expression instanceof Expression)) {
+            $expression = new RawExpression($expression, $bindings);
+        }
+        return $expression;
+    }
+
+    function where($expression, $bindings = []) {
+        $expression = $this->makeExpression($expression, $bindings);
+        array_push($this->whereExpressions, $expression);
+        return $this;
+    }
+
+    function groupBy($expression, $bindings = []) {
+        $expression = $this->makeExpression($expression, $bindings);
+        array_push($this->groupByExpressions, $expression);
+        return $this;
+    }
+
+    function having($expression, $bindings = []) {
+        $expression = $this->makeExpression($expression, $bindings);
+        array_push($this->havingExpressions, $expression);
+        return $this;
+    }
+
+    function orderBy($expression, $desc = false, $bindings = []) {
+        $expression = $this->makeExpression($expression, $bindings);
+        if ($desc && $desc != "ASC") {
+            $expression = new OrderDesc($expression);
+        }
+        array_unshift($this->orderByExpressions, $expression);
+        return $this;
+    }
+
+    function limit($count = null, $offset = null) {
+        if (!($count instanceof Expression)) {
+            $count = new Literal($count);
+        }
+        if ($offset && !($offset instanceof Expression)) {
+            $offset = new Literal($offset);
+        }
+        $this->limitCount = $count;
+        $this->limitOffset = $offset;
+        return $this;
+    }
+
+    function getQuery() {
+        $query = new SelectStructure();
+        $query->selectColumns($this->selectColumns);
+        if ($this->selectFromTableish) {
+            $selectFromClause = new SelectFromClause($this->selectFromTableish);
+            if ($this->whereExpressions) {
+                $selectFromClause->where(new WhereClause(AndExpression::fromArray($this->whereExpressions)));
+            }
+            if ($this->groupByExpressions) {
+                $selectFromClause->groupBy(GroupByClause::fromArray($this->groupByExpressions));
+            }
+            if ($this->havingExpressions) {
+                $selectFromClause->having(new HavingClause(AndExpression::fromArray($this->havingExpressions)));
+            }
+            if ($this->orderByExpressions) {
+                $selectFromClause->orderBy(OrderByClause::fromArray($this->orderByExpressions));
+            }
+            if ($this->limitCount) {
+                $selectFromClause->limit(new LimitClause($this->limitCount, $this->limitOffset));
+            }
+            $query->selectFrom($selectFromClause);
+        }
+        return $query;
+    }
+
+    function selectColumn(SelectColumn $selectColumn) {
+        array_push($this->selectColumns, $selectColumn);
+        return $this;
+    }
+
+    function selectStar($tableName = null) {
+        $this->selectStructure()->selectColumn(new SelectStar($tableName));
+        return $this;
+    }
+
+    function selectExpression(Expression $expression, $as = null) {
+        return $this->selectColumn(new SelectColumn($expression), $as);
+    }
+
+    function selectColumnName($columnName, $subName = null, $as = null) {
+        return $this->selectExpression(new Column($columnName, $subName), $as);
+    }
+
+    function selectLiteral($literal, $as = null) {
+        if (!($literal instanceof Literal)) {
+            $literal = new Literal($literal);
+        }
+        return $this->selectExpression($literal, $as);
+    }
+
+    function selectSubquery($subquery, $as = null) {
+        if (!($subquery instanceof SubqueryExpression)) {
+            $subquery = new SubqueryExpression($subquery);
+        }
+        return $this->selectExpression($subquery, $as);
     }
 }
