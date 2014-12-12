@@ -13,8 +13,10 @@ use \MeticulousInquisitor\Clause\OrderByClause\OrderDesc;
 use \MeticulousInquisitor\Clause\LimitClause;
 use \MeticulousInquisitor\Expression\AndExpression;
 use \MeticulousInquisitor\Expression\Column;
+use \MeticulousInquisitor\Expression\EqualsExpression;
 use \MeticulousInquisitor\Expression\RawExpression;
 use \MeticulousInquisitor\Expression\Literal;
+use \MeticulousInquisitor\Expression\Placeholder;
 use \MeticulousInquisitor\Expression\SubqueryExpression;
 use \MeticulousInquisitor\QueryStructure\SelectStructure;
 use \MeticulousInquisitor\Tableish;
@@ -83,6 +85,17 @@ class SelectBuilder implements SelectQuery {
         $expression = $this->makeExpression($expression, $bindings);
         array_push($this->whereExpressions, $expression);
         return $this;
+    }
+
+    function whereEquals($left, $right, $bindings = []) {
+        if(!($left instanceof Expression)) {
+            $left = new Column($left);
+        }
+        if(!($right instanceof Expression)) {
+            $right = new Placeholder($right);
+        }
+
+        return $this->where(new EqualsExpression($left, $right));
     }
 
     function groupBy($expression, $bindings = []) {

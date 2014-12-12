@@ -5,12 +5,12 @@ use \MeticulousInquisitor\Expression;
 use \MeticulousInquisitor\Clause\LimitClause\LimitParam;
 
 class PlaceHolder extends Scalar implements LimitParam {
-    static $id = 0;
+    static $counter = 0;
     protected $id;
     protected $binding;
 
     function __construct($binding = null) {
-        $this->id = self::$id++;
+        $this->id = self::$counter++;
         $this->binding = $binding;
     }
 

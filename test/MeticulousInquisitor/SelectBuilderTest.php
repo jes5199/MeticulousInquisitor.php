@@ -128,4 +128,17 @@ class SelectBuilderTest extends \PHPUnit_Framework_TestCase {
             $builder2->getSQL()
         );
     }
+
+    function testSelectBuilderWhereEquals() {
+        $builder = (new SelectBuilder())->select("name")->from("users")->whereEquals("id", 1);
+        $placeholderName = array_keys($builder->getBindings())[0];
+        $this->assertEquals(
+            "SELECT `name` FROM `users` WHERE `id` = $placeholderName",
+            $builder->getSQL()
+        );
+        $this->assertEquals(
+            [$placeholderName => 1],
+            $builder->getBindings()
+        );
+    }
 }
