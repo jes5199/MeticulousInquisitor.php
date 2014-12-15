@@ -121,10 +121,10 @@ class SelectBuilder implements SelectQuery {
 
     function limit($count = null, $offset = null) {
         if (!($count instanceof Expression)) {
-            $count = new Literal($count);
+            $count = new PlaceHolder($count);
         }
         if ($offset && !($offset instanceof Expression)) {
-            $offset = new Literal($offset);
+            $offset = new PlaceHolder($offset);
         }
         $this->limitCount = $count;
         $this->limitOffset = $offset;

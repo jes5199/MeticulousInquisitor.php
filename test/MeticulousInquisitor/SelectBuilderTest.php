@@ -104,9 +104,19 @@ class SelectBuilderTest extends \PHPUnit_Framework_TestCase {
         $builder->select("value")->select("name")->from("test")->where(new Literal("1"))->where("name = 1")
             ->groupBy("value")->having("value > 1")->orderBy("name")->orderBy("value", "DESC")->limit("2", "4");
 
+        $placeholderNames = array_keys($builder->getBindings());
+        $this->assertEquals(
+            [
+                // parameters from limit() are wrapped as placeholders for safety:
+                $placeholderNames[0] => 2,
+                $placeholderNames[1] => 4
+            ],
+            $builder->getBindings()
+        );
+
         $this->assertEquals(
             "SELECT `value`, `name` FROM `test` WHERE 1 AND (name = 1) GROUP BY value HAVING value > 1"
-            . " ORDER BY value DESC, name LIMIT 2 OFFSET 4",
+            . " ORDER BY value DESC, name LIMIT {$placeholderNames[0]} OFFSET {$placeholderNames[1]}",
             $builder->getSQL()
         );
     }
